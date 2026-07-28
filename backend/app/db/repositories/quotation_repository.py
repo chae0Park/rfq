@@ -38,3 +38,15 @@ class QuotationRepository:
             .filter(QuotationDB.id == quotation_id)
             .first()
         )
+
+    # dashboard에서 승인 된 quotation을 가져오기 위해 추가
+    def get_by_rfq_id(
+        self,
+        rfq_id: int,
+    ) -> QuotationDB:
+
+        return (
+            self.db.query(QuotationDB)
+            .filter(QuotationDB.rfq_id == rfq_id)
+            .first()
+        )
