@@ -40,3 +40,15 @@ class ApprovalRepository:
             .filter(ApprovalDB.id == approval_id)
             .first()
         )
+
+    def get_by_rfq_id(
+        self,
+        rfq_id: int,
+    ) -> ApprovalDB | None:
+
+        return (
+            self.db.query(ApprovalDB)
+            .filter(ApprovalDB.rfq_id == rfq_id)
+            .order_by(ApprovalDB.created_at.desc())
+            .first()
+        )

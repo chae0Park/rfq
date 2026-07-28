@@ -33,7 +33,17 @@ class RFQDB(Base):
         nullable=True,
     )
 
+    client: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     client_name: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    client_email: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
     )

@@ -4,6 +4,7 @@ from app.db.mappers.rfq_mapper import RFQMapper
 from app.db.models.rfq import RFQDB
 from app.enums.rfq_status import RFQStatus
 from app.models.result import RFQExtractionResult
+from app.models.request import RFQRequest
 
 
 class RFQRepository:
@@ -13,12 +14,12 @@ class RFQRepository:
 
     def create(
         self,
-        email: str,
+        request: RFQRequest,
         result: RFQExtractionResult,
     ):
 
         rfq_db = RFQMapper.to_db(
-            email=email,
+            request=request,
             result=result,
         )
 

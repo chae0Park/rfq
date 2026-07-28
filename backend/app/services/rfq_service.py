@@ -29,7 +29,7 @@ class RFQService:
         validation = self.validator.validate(extraction)
 
         saved_rfq = self.repository.create(
-            email=request.email,
+            request=request,
             result=validation,
         )
 

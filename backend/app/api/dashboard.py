@@ -2,13 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
-# from app.enums.rfq_status import RFQStatus
 from app.models.approval import ApprovalRequest,ApprovalResponse
 
 from app.db.repositories.rfq_repository import RFQRepository
 from app.db.repositories.quotation_repository import QuotationRepository
 
 from app.services.approval_service import ApprovalService
+
+
+from app.config.database import get_db
+from app.models.email_draft import DraftEmailResponse
+from app.services.email_draft_service import EmailDraftService
+
 
 router = APIRouter(
     prefix="/dashboard",
@@ -126,3 +131,23 @@ def reject_rfq(
         reviewer=approval.reviewer,
         comment=approval.comment,
     )
+
+
+@router.post(
+    "/rfqs/{rfq_id}/draft-email",
+    response_model=DraftEmailResponse,
+)
+def generate_email_draft(
+    rfq_id: int,
+    db: Session = Depends(get_db),
+):
+    service = EmailDraftService(db)
+
+    try:
+        return service.generate(rfq_id)
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error),
+        ) from error

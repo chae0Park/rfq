@@ -23,7 +23,7 @@ class RFQExtractor:
                 },
                 {
                     "role": "user",
-                    "content": request.email,
+                    "content": request.email_body,
                 },
             ],
             text_format=RFQExtraction,

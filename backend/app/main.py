@@ -7,7 +7,6 @@ from app.api.rfq import router as rfq_router
 
 from app.config.database import Base
 from app.config.database import engine
-from app.api import approval
 from app.api import draft_email
 
 
@@ -29,7 +28,7 @@ app.add_middleware(
 
 app.include_router(rfq_router)
 app.include_router(dashboard_router)
-app.include_router(approval.router)
+
 app.include_router(draft_email.router)
 
 @app.get("/", tags=["Health"])

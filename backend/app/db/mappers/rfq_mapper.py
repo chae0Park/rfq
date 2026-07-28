@@ -1,21 +1,26 @@
 from app.db.models.rfq import RFQDB
 from app.models.result import RFQExtractionResult
+from app.models.request import RFQRequest
 
 
 class RFQMapper:
 
     @staticmethod
     def to_db(
-        email: str,
+        request: RFQRequest,
         result: RFQExtractionResult,
     ) -> RFQDB:
 
         rfq = result.extracted_data
 
         return RFQDB(
-            original_email=email,
+            original_email=request.email_body,
+
+            client_name=request.from_name,
+            client_email=request.from_email,
+
             project_name=rfq.project_name,
-            client_name=rfq.client,
+            client=rfq.client,          # RFQ에서 추출된 회사명
             country=rfq.country,
             countries=rfq.countries,
             sample_size=rfq.sample_size,
