@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.config.database import get_db
 from app.models.approval import ApprovalRequest,ApprovalResponse
+from app.models.dashboard import RFQDetailResponse, QuotationSummaryResponse, RFQListItemResponse
 
 from app.db.repositories.rfq_repository import RFQRepository
 from app.db.repositories.quotation_repository import QuotationRepository
@@ -21,22 +22,57 @@ router = APIRouter(
 )
 
 
-@router.get("/rfqs")
+@router.get(
+    "/rfqs",
+    response_model=list[RFQListItemResponse],
+)
 def get_rfqs(
     db: Session = Depends(get_db),
 ):
-    repository = RFQRepository(db)
-    return repository.get_all()
+    rfq_repository = RFQRepository(db)
+    quotation_repository = QuotationRepository(db)
+
+    rfqs = rfq_repository.get_all()
+
+    result = []
+
+    for rfq in rfqs:
+
+        quotation = quotation_repository.get_by_rfq_id(
+            rfq.id
+        )
+
+        result.append(
+            RFQListItemResponse(
+                id=rfq.id,
+                client_name=rfq.client_name,
+                client_email=rfq.client_email,
+                project_name=rfq.project_name,
+                country=rfq.country,
+                sample_size=rfq.sample_size,
+                status=rfq.status.value,
+                total_cost=quotation.total_cost if quotation else None,
+                currency=quotation.currency if quotation else None,
+            )
+        )
+
+    return result
 
 
-@router.get("/rfqs/{rfq_id}")
+
+
+@router.get(
+    "/rfqs/{rfq_id}",
+    response_model=RFQDetailResponse,
+)
 def get_rfq(
     rfq_id: int,
     db: Session = Depends(get_db),
 ):
-    repository = RFQRepository(db)
+    rfq_repository = RFQRepository(db)
+    quotation_repository = QuotationRepository(db)
 
-    rfq = repository.get_by_id(rfq_id)
+    rfq = rfq_repository.get_by_id(rfq_id)
 
     if rfq is None:
         raise HTTPException(
@@ -44,7 +80,37 @@ def get_rfq(
             detail="RFQ not found.",
         )
 
-    return rfq
+    quotation = quotation_repository.get_by_rfq_id(rfq.id)
+
+    quotation_response = None
+
+    if quotation:
+        quotation_response = QuotationSummaryResponse(
+            base_cost=quotation.base_cost,
+            sample_cost=quotation.sample_cost,
+            programming_fee=quotation.programming_fee,
+            translation_fee=quotation.translation_fee,
+            pm_fee=quotation.pm_fee,
+            margin=quotation.margin,
+            rush_fee=quotation.rush_fee,
+            client_discount=quotation.client_discount,
+            total_cost=quotation.total_cost,
+            currency=quotation.currency,
+        )
+
+    return RFQDetailResponse(
+        id=rfq.id,
+        project_name=rfq.project_name,
+        client_name=rfq.client_name,
+        client_email=rfq.client_email,
+        client=rfq.client,
+        country=rfq.country,
+        sample_size=rfq.sample_size,
+        methodology=rfq.methodology,
+        timeline=rfq.timeline,
+        status=rfq.status.value,
+        quotation=quotation_response,
+    )
 
 
 @router.post("/rfqs/{rfq_id}/approve", response_model=ApprovalResponse,)

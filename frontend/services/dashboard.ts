@@ -1,4 +1,6 @@
 import type { RFQ } from "@/types/rfq";
+import type { DraftEmail } from "@/types/emailDraft";
+import type { Activity } from "@/types/activity";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000";
@@ -18,6 +20,23 @@ export async function getRFQs(): Promise<RFQ[]> {
 
   return response.json();
 }
+
+// export async function getRFQ(id: number) {
+//   const response = await fetch(
+//     `${API_BASE_URL}/dashboard/rfqs/${id}`
+//   );
+
+//   console.log("Status:", response.status);
+
+//   if (!response.ok) {
+//     const text = await response.text();
+//     console.log("Body:", text);
+
+//     throw new Error(`Failed to fetch RFQ (${response.status})`);
+//   }
+
+//   return response.json();
+// }
 
 export async function getRFQ(id: number): Promise<RFQ> {
   const response = await fetch(
@@ -84,18 +103,46 @@ export async function rejectRFQ(
   return response.json();
 }
 
+
 export async function generateDraftEmail(
-  rfqId: number,
-) {
+  rfqId: number
+): Promise<DraftEmail> {
   const response = await fetch(
     `${API_BASE_URL}/dashboard/rfqs/${rfqId}/draft-email`,
     {
       method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
     }
   );
 
   if (!response.ok) {
-    throw new Error("Failed to generate draft email");
+    const errorBody = await response
+      .json()
+      .catch(() => null);
+
+    throw new Error(
+      errorBody?.detail ??
+        `Failed to generate draft email: ${response.status}`
+    );
+  }
+
+  return response.json();
+}
+
+export async function getActivities(
+  rfqId: number
+): Promise<Activity[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/dashboard/rfqs/${rfqId}/activities`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch activities");
   }
 
   return response.json();

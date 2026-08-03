@@ -1,4 +1,4 @@
-import RFQTable from "@/components/dashboard/RFQTable";
+import DashboardClient from "@/components/dashboard/DashboardClient";
 import { getRFQs } from "@/services/dashboard";
 
 export default async function DashboardPage() {
@@ -6,31 +6,32 @@ export default async function DashboardPage() {
 
   return (
     <main className="dashboard-page">
-      <section className="dashboard-header">
+      <div className="dashboard-header">
         <div>
-          <p className="eyebrow">AI Operations</p>
-          <h1>RFQ Dashboard</h1>
-          <p className="dashboard-description">
-            Review extracted RFQs and manage quotation workflows.
+          <span className="dashboard-tag">
+            AI Operations Platform
+          </span>
+
+          <h1>PromptOps Dashboard</h1>
+
+          <p>
+            AI-powered RFQ extraction, quotation,
+            approval and draft email generation.
           </p>
         </div>
 
-        <div className="summary-card">
-          <span>Total RFQs</span>
-          <strong>{rfqs.length}</strong>
-        </div>
-      </section>
-
-      <section className="dashboard-card">
-        <div className="card-header">
-          <div>
-            <h2>RFQ Requests</h2>
-            <p>Recently received client requests</p>
+        <div className="dashboard-summary">
+          <div className="summary-number">
+            {rfqs.length}
           </div>
-        </div>
 
-        <RFQTable rfqs={rfqs} />
-      </section>
+          <span>Total RFQs</span>
+        </div>
+      </div>
+
+      <DashboardClient
+        rfqs={rfqs}
+      />
     </main>
   );
 }

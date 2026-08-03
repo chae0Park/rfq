@@ -22,6 +22,7 @@ export default function RFQTable({ rfqs }: RFQTableProps) {
             <th>Project</th>
             <th>Country</th>
             <th>Sample Size</th>
+            <th>Total</th>
             <th>Status</th>
             <th />
           </tr>
@@ -47,15 +48,23 @@ export default function RFQTable({ rfqs }: RFQTableProps) {
                   ? rfq.sample_size.toLocaleString("en-US")
                   : "-"}
               </td>
+              <td>
+                {rfq.total_cost !== null
+                  ? `${rfq.currency} ${rfq.total_cost.toLocaleString("en-US")}`
+                  : "-"}
+              </td>
 
               <td>
                 <StatusBadge status={rfq.status} />
               </td>
 
               <td>
-                <Link href={`/rfqs/${rfq.id}`} className="view-button">
+                <Link href={`/rfqs/${rfq.id}`} className="view-link">
                   View
                 </Link>
+                {/* <Link href={`/rfqs/${rfq.id}`}>
+                    View
+                </Link> */}
               </td>
             </tr>
           ))}

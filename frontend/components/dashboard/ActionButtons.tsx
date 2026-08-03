@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import DraftEmailViewer from "@/components/dashboard/DraftEmailViewer";
 
 import {
   approveRFQ,
@@ -8,83 +10,137 @@ import {
   generateDraftEmail,
 } from "@/services/dashboard";
 
-interface Props {
+import type { DraftEmail } from "@/types/emailDraft";
+
+interface ActionButtonsProps {
   rfqId: number;
+  // onDraftGenerated: (draft: DraftEmail) => void;
 }
 
 export default function ActionButtons({
   rfqId,
-}: Props) {
-  const [loading, setLoading] = useState(false);
+  // onDraftGenerated,
+}: ActionButtonsProps) {
+  const router = useRouter();
+
+  const [loadingAction, setLoadingAction] = useState<
+    "approve" | "reject" | "draft" | null
+  >(null);
+
+  const [draft, setDraft] = useState<DraftEmail | null>(null);
+
+  const [error, setError] = useState<string | null>(null);
 
   async function handleApprove() {
-    setLoading(true);
+    setLoadingAction("approve");
+    setError(null);
 
     try {
       await approveRFQ(rfqId, {
         decision: "APPROVED",
         reviewer: "Chaeyoung Park",
-        comment: "Approved from dashboard.",
+        comment: "Pricing reviewed and approved from the dashboard.",
       });
 
-      alert("RFQ Approved");
+      router.refresh();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to approve RFQ."
+      );
     } finally {
-      setLoading(false);
+      setLoadingAction(null);
     }
   }
 
   async function handleReject() {
-    setLoading(true);
+    setLoadingAction("reject");
+    setError(null);
 
     try {
       await rejectRFQ(rfqId, {
         decision: "REJECTED",
         reviewer: "Chaeyoung Park",
-        comment: "Rejected from dashboard.",
+        comment: "RFQ rejected from the dashboard.",
       });
 
-      alert("RFQ Rejected");
+      router.refresh();
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to reject RFQ."
+      );
     } finally {
-      setLoading(false);
+      setLoadingAction(null);
     }
   }
 
   async function handleDraft() {
-    setLoading(true);
+    setLoadingAction("draft");
+    setError(null);
 
     try {
-      const draft = await generateDraftEmail(rfqId);
+      const generatedDraft = await generateDraftEmail(rfqId);
 
-      alert(
-        `${draft.subject}\n\n${draft.body}`
+      setDraft(generatedDraft);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate draft email."
       );
     } finally {
-      setLoading(false);
+      setLoadingAction(null);
     }
   }
 
+  const isLoading = loadingAction !== null;
+
   return (
-    <div className="action-buttons">
-      <button
-        disabled={loading}
-        onClick={handleApprove}
-      >
-        Approve
-      </button>
+    <div className="action-section">
+      <div className="action-buttons">
+        <button
+          className="approve-button"
+          onClick={handleApprove}
+          disabled={isLoading}
+        >
+          {loadingAction === "approve"
+            ? "Approving..."
+            : "Approve"}
+        </button>
 
-      <button
-        disabled={loading}
-        onClick={handleReject}
-      >
-        Reject
-      </button>
+        <button
+          className="reject-button"
+          onClick={handleReject}
+          disabled={isLoading}
+        >
+          {loadingAction === "reject"
+            ? "Rejecting..."
+            : "Reject"}
+        </button>
 
-      <button
-        disabled={loading}
-        onClick={handleDraft}
-      >
-        Generate Draft
-      </button>
+        <button
+          className="draft-button"
+          onClick={handleDraft}
+          disabled={isLoading}
+        >
+          {loadingAction === "draft"
+            ? "Generating..."
+            : "Generate Draft"}
+        </button>
+      </div>
+
+      {error && (
+        <p className="action-error">
+          {error}
+        </p>
+      )}
+
+      <DraftEmailViewer
+          draft={draft}
+      />
     </div>
   );
 }
