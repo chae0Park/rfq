@@ -837,3 +837,102 @@ a {
 
     min-height:220px;
 }
+
+.draft-toolbar{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:12px;
+}
+
+.draft-toolbar button{
+
+    display:flex;
+    align-items:center;
+    gap:6px;
+
+    border:none;
+    background:#EEF4FF;
+
+    color:#175CD3;
+
+    padding:6px 12px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+}
+
+.draft-toolbar button:hover{
+
+    background:#DCEBFF;
+}
+
+.draft-actions{
+    display:flex;
+    justify-content:flex-end;
+
+    margin-top:24px;
+}
+
+.gmail-button{
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    border:none;
+
+    padding:12px 18px;
+
+    border-radius:10px;
+
+    background:#175CD3;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-weight:600;
+}
+
+.gmail-button:hover{
+
+    background:#124DB3;
+}
+
+.download-button{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    border:1px solid #D0D5DD;
+
+    background:white;
+
+    padding:12px 18px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-weight:600;
+}
+
+.download-button:hover{
+
+    background:#F8FAFC;
+}
+
+.draft-actions{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:12px;
+
+    margin-top:24px;
+}
