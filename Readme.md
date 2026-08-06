@@ -126,8 +126,8 @@ http://localhost:3000
 * [x] Human Approval
 * [x] Draft Email Generation
 * [x] Dashboard
-* [ ] Docker
-* [ ] Deployment (Railway / Vercel)
+* [x] Docker
+* [x] Deployment (Railway / Vercel)
 * [ ] n8n Workflow
 * [ ] Gmail Integration
 * [ ] Slack Notification
