@@ -1,25 +1,65 @@
 from openai import OpenAI
+import csv
+from pathlib import Path
 
 from app.config.settings import settings
 from app.models.request import RFQRequest
-from app.models.result import RFQExtractionResult
 from app.models.rfq import RFQExtraction
 from app.prompts.extraction import EXTRACTION_SYSTEM_PROMPT
-# from app.services.validator import RFQValidator
 
 
 class RFQExtractor:
     def __init__(self):
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        # self.validator = RFQValidator()
+        self.supported_countries = self._load_supported_countries()
 
-    def extract(self, request: RFQRequest) -> RFQExtractionResult:
+    def _load_supported_countries(self) -> list[str]:
+        countries = []
+
+        with open(
+            Path("data/base_cost.csv"),
+            newline="",
+            encoding="utf-8",
+        ) as file:
+            reader = csv.DictReader(file)
+
+            for row in reader:
+                countries.append(row["country"])
+
+        return countries
+
+    def extract(self, request: RFQRequest) -> RFQExtraction:
+        country_list = "\n".join(
+            f"- {country}"
+            for country in self.supported_countries
+        )
+
+        system_prompt = f"""
+{EXTRACTION_SYSTEM_PROMPT}
+
+## Supported Pricing Countries
+
+The following are the canonical country names supported by
+the pricing system:
+
+{country_list}
+
+When a country mentioned in the email clearly corresponds to one
+of these countries, return exactly the canonical name shown above.
+
+Correct abbreviations, alternative names, and minor spelling mistakes
+when the intended country is unambiguous.
+
+If the country does not correspond to any supported country,
+preserve the country stated by the client.
+"""
+
         response = self.client.responses.parse(
             model=settings.OPENAI_MODEL,
             input=[
                 {
                     "role": "system",
-                    "content": EXTRACTION_SYSTEM_PROMPT,
+                    "content": system_prompt,
                 },
                 {
                     "role": "user",
@@ -29,7 +69,4 @@ class RFQExtractor:
             text_format=RFQExtraction,
         )
 
-        extracted = response.output_parsed
-
-        # return self.validator.validate(extracted)
         return response.output_parsed

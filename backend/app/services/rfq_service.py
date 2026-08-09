@@ -2,69 +2,47 @@ from app.models.request import RFQRequest
 from app.models.result import RFQExtractionResult
 from app.services.extractor import RFQExtractor
 from app.services.validator import RFQValidator
+
 from sqlalchemy.orm import Session
+
 from app.db.repositories.rfq_repository import RFQRepository
 from app.enums.rfq_status import RFQStatus
-from app.services.quotation_service import QuotationService
-from app.services.price_review_service import PriceReviewService
-from app.db.repositories.price_review_repository import PriceReviewRepository
 
 
 class RFQService:
-    def __init__(self,db: Session):
+    def __init__(self, db: Session):
         self.extractor = RFQExtractor()
         self.validator = RFQValidator()
         self.repository = RFQRepository(db)
-        self.quotation_service = QuotationService(db)
-        self.price_review_service = PriceReviewService()
-        self.price_review_repository = PriceReviewRepository(db)
 
     def process_email(
         self,
         request: RFQRequest,
     ) -> RFQExtractionResult:
 
+        # 1. Extract RFQ information with GPT
         extraction = self.extractor.extract(request)
 
+        # 2. Validate required fields
         validation = self.validator.validate(extraction)
 
+        # 3. Save RFQ to DB
         saved_rfq = self.repository.create(
             request=request,
             result=validation,
         )
 
+        # 4. Update RFQ status
         self.repository.update_status(
             rfq=saved_rfq,
             status=RFQStatus.VALIDATED,
         )
 
-        print(validation.extracted_data.model_dump())
-
-        quotation, saved_quotation = self.quotation_service.generate(
+        # 5. Return extraction + validation + generated RFQ ID
+        return RFQExtractionResult(
             rfq_id=saved_rfq.id,
-            rfq=validation.extracted_data,
+            extracted_data=validation.extracted_data,
+            missing_fields=validation.missing_fields,
+            clarification_questions=validation.clarification_questions,
+            ready_for_quotation=validation.ready_for_quotation,
         )
-
-        price_review = self.price_review_service.review(
-            rfq=validation.extracted_data,
-            quotation=quotation,
-        )
-
-        self.price_review_repository.create(
-            rfq_id=saved_rfq.id,
-            quotation_id=saved_quotation.id,   # DB 객체
-            result=price_review,
-        )
-
-        print("Price review saved")
-
-        print(price_review.model_dump())
-
-        self.repository.update_status(
-            rfq=saved_rfq,
-            status=RFQStatus.PRICE_REVIEWED,
-        )
-        
-        validation.rfq_id = saved_rfq.id
-
-        return validation

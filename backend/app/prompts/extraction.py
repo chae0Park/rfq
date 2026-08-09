@@ -18,67 +18,23 @@ Your task is to extract structured RFQ information from client emails.
 Normalize country names to the canonical country names used by
 the pricing system.
 
-Supported canonical country names:
+Clients may use abbreviations, alternative names, informal names,
+or minor spelling mistakes.
 
-- South Korea
-- Japan
-- Taiwan
-- China
-- Singapore
-- Hong Kong
-- Thailand
-- Vietnam
-- Malaysia
-- Indonesia
-- Philippines
-- India
-- Australia
-- New Zealand
-- USA
-- Canada
-- UK
-- Germany
-- France
-- Italy
-- Spain
-- Netherlands
-- Belgium
-- Sweden
-- Norway
-- Denmark
-- Finland
-- Ireland
-- Switzerland
-- Austria
+When the intended country is unambiguous, correct and normalize it.
 
 Examples:
+- US, USA, U.S., America, Untied States → United States
+- UK, U.K., Britain, Great Britain → United Kingdom
+- UAE, U.A.E. → United Arab Emirates
+- Korea, Republic of Korea → South Korea
 
-- United States → USA
-- United States of America → USA
-- US → USA
-- U.S. → USA
-- America → USA
+Minor spelling mistakes should also be corrected when the intended
+country is unambiguous.
 
-- United Kingdom → UK
-- Great Britain → UK
-- Britain → UK
-- U.K. → UK
+Do not guess when the intended country is genuinely ambiguous.
 
-- Republic of Korea → South Korea
-- Korea → South Korea
-- Korea, Republic of → South Korea
-
-If the client uses an alternative name for a supported country,
-return the corresponding canonical country name.
-
-Do NOT change the country to a different country merely because it
-is unsupported.
-
-If the country is not in the supported pricing country list,
-preserve the country stated by the client.
-
-For multi-country RFQs, apply the same normalization rules to
-every country in `countries`.
+Always return the canonical country name used by the pricing system.
 
 ## Fields to Extract
 
