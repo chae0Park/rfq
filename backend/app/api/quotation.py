@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.config.database import get_db
 from app.db.models.rfq import RFQDB
 from app.models.rfq import RFQExtraction
-from app.services.calculator import RFQCalculator
+from app.services.quotation_service import QuotationService
 
 
 router = APIRouter(
@@ -34,7 +34,7 @@ def create_quotation(
             detail="RFQ is not ready for quotation",
         )
 
-    # 3. DB 데이터 → Calculator용 RFQExtraction
+    # 3. DB 데이터 → RFQExtraction
     rfq = RFQExtraction(
         project_name=rfq_db.project_name,
         country=rfq_db.country,
@@ -54,19 +54,23 @@ def create_quotation(
         client=rfq_db.client,
     )
 
-    # 4. 기존 Calculator 실행
-    calculator = RFQCalculator()
+    # 4. Quotation 계산 + DB 저장
+    quotation_service = QuotationService(db)
 
     try:
-        result = calculator.calculate(rfq)
+        quotation, saved_quotation = quotation_service.generate(
+            rfq_id=rfq_id,
+            rfq=rfq,
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=400,
             detail=str(e),
         )
 
-    # 5. 계산 결과 반환
+    # 5. 결과 반환
     return {
         "rfq_id": rfq_id,
-        **result.model_dump(),
+        "quotation_id": saved_quotation.id,
+        **quotation.model_dump(),
     }
