@@ -8,6 +8,9 @@ from app.models.quotation import QuotationResult
 
 
 class RFQExtractionResult(BaseModel):
+
+    rfq_id: int | None = None
+
     extracted_data: RFQExtraction = Field(
         description="Structured RFQ information extracted from the email."
     )

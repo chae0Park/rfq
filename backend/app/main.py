@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.rfq import router as rfq_router
 from app.api.dashboard import router as dashboard_router
 from app.api.rfq import router as rfq_router
+from app.api.quotation import router as quotation_router
 
 from app.config.database import Base
 from app.config.database import engine
@@ -28,7 +29,7 @@ app.add_middleware(
 
 app.include_router(rfq_router)
 app.include_router(dashboard_router)
-
+app.include_router(quotation_router)
 app.include_router(draft_email.router)
 
 @app.get("/", tags=["Health"])

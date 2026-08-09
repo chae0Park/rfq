@@ -65,5 +65,6 @@ class RFQService:
             status=RFQStatus.PRICE_REVIEWED,
         )
         
+        validation.rfq_id = saved_rfq.id
 
         return validation

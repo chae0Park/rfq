@@ -30,3 +30,19 @@ services:
       - backend
 
     restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n:latest
+
+    container_name: rfq-n8n
+
+    ports:
+      - "5678:5678"
+
+    environment:
+      - TZ=Asia/Seoul
+
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+
+    restart: unless-stopped
