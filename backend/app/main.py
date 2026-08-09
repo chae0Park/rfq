@@ -6,6 +6,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.rfq import router as rfq_router
 from app.api.quotation import router as quotation_router
 from app.api.price_review import router as price_review_router
+from app.api.workflow import router as workflow_router
 
 from app.config.database import Base
 from app.config.database import engine
@@ -33,6 +34,7 @@ app.include_router(dashboard_router)
 app.include_router(quotation_router)
 app.include_router(price_review_router)
 app.include_router(draft_email.router)
+app.include_router(workflow_router)
 
 @app.get("/", tags=["Health"])
 def root():

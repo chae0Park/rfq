@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+import httpx
 
 from app.config.database import get_db
 from app.models.approval import ApprovalRequest,ApprovalResponse
@@ -7,6 +8,7 @@ from app.models.dashboard import RFQDetailResponse, QuotationSummaryResponse, RF
 
 from app.db.repositories.rfq_repository import RFQRepository
 from app.db.repositories.quotation_repository import QuotationRepository
+from app.db.models.rfq import RFQDB
 
 from app.services.approval_service import ApprovalService
 
@@ -113,6 +115,28 @@ def get_rfq(
     )
 
 
+def resume_n8n_workflow(
+    rfq: RFQDB,
+    decision: str,
+    approval_id: int,
+    quotation_id: int,
+):
+    if not rfq.n8n_resume_url:
+        return
+
+    response = httpx.post(
+        rfq.n8n_resume_url,
+        json={
+            "rfq_id": rfq.id,
+            "quotation_id": quotation_id,
+            "approval_id": approval_id,
+            "decision": decision,
+        },
+        timeout=10.0,
+    )
+
+    response.raise_for_status()
+
 @router.post("/rfqs/{rfq_id}/approve", response_model=ApprovalResponse,)
 def approve_rfq(
     rfq_id: int,
@@ -144,6 +168,13 @@ def approve_rfq(
         rfq=rfq,
         quotation_id=quotation.id,
         request=request,
+    )
+
+    resume_n8n_workflow(
+        rfq=rfq,
+        decision="APPROVE",
+        approval_id=approval.id,
+        quotation_id=quotation.id,
     )
 
     return ApprovalResponse(
@@ -187,6 +218,13 @@ def reject_rfq(
         rfq=rfq,
         quotation_id=quotation.id,
         request=request,
+    )
+
+    resume_n8n_workflow(
+        rfq=rfq,
+        decision="REJECT",
+        approval_id=approval.id,
+        quotation_id=quotation.id,
     )
 
     return ApprovalResponse(

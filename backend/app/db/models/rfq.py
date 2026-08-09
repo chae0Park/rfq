@@ -142,6 +142,11 @@ class RFQDB(Base):
         nullable=False,
     )
 
+    n8n_resume_url: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
     status: Mapped[RFQStatus] = mapped_column(
         Enum(RFQStatus),
         default=RFQStatus.RECEIVED,
@@ -160,3 +165,5 @@ class RFQDB(Base):
         onupdate=datetime.utcnow,
         nullable=False,
     )
+
+    
