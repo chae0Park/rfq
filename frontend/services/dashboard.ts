@@ -21,22 +21,6 @@ export async function getRFQs(): Promise<RFQ[]> {
   return response.json();
 }
 
-// export async function getRFQ(id: number) {
-//   const response = await fetch(
-//     `${API_BASE_URL}/dashboard/rfqs/${id}`
-//   );
-
-//   console.log("Status:", response.status);
-
-//   if (!response.ok) {
-//     const text = await response.text();
-//     console.log("Body:", text);
-
-//     throw new Error(`Failed to fetch RFQ (${response.status})`);
-//   }
-
-//   return response.json();
-// }
 
 export async function getRFQ(id: number): Promise<RFQ> {
   const response = await fetch(

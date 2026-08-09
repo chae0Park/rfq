@@ -62,9 +62,7 @@ export default function RFQTable({ rfqs }: RFQTableProps) {
                 <Link href={`/rfqs/${rfq.id}`} className="view-link">
                   View
                 </Link>
-                {/* <Link href={`/rfqs/${rfq.id}`}>
-                    View
-                </Link> */}
+               
               </td>
             </tr>
           ))}

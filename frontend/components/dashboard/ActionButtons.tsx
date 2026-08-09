@@ -32,27 +32,27 @@ export default function ActionButtons({
   const [error, setError] = useState<string | null>(null);
 
   async function handleApprove() {
-    setLoadingAction("approve");
-    setError(null);
+  setLoadingAction("approve");
+  setError(null);
 
-    try {
-      await approveRFQ(rfqId, {
-        decision: "APPROVED",
-        reviewer: "Chaeyoung Park",
-        comment: "Pricing reviewed and approved from the dashboard.",
-      });
+  try {
+    await approveRFQ(rfqId, {
+      decision: "APPROVE",
+      reviewer: "Chaeyoung Park",
+      comment: "Pricing reviewed and approved from the dashboard.",
+    });
 
-      router.refresh();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to approve RFQ."
-      );
-    } finally {
-      setLoadingAction(null);
-    }
+    router.refresh();
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Failed to approve RFQ."
+    );
+  } finally {
+    setLoadingAction(null);
   }
+}
 
   async function handleReject() {
     setLoadingAction("reject");
@@ -60,7 +60,7 @@ export default function ActionButtons({
 
     try {
       await rejectRFQ(rfqId, {
-        decision: "REJECTED",
+        decision: "REJECT",
         reviewer: "Chaeyoung Park",
         comment: "RFQ rejected from the dashboard.",
       });
@@ -76,6 +76,8 @@ export default function ActionButtons({
       setLoadingAction(null);
     }
   }
+
+  
 
   async function handleDraft() {
     setLoadingAction("draft");

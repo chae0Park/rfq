@@ -55,7 +55,11 @@ class RFQRepository:
         return rfq
 
     def get_all(self):
-        return self.db.query(RFQDB).all()
+        return (
+            self.db.query(RFQDB)
+            .order_by(RFQDB.created_at.desc())
+            .all()
+        )
 
     def get_by_id(
         self,
