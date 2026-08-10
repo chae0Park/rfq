@@ -25,11 +25,11 @@ class ApprovalService:
             request=request,
         )
 
-        status = (
-            RFQStatus.APPROVED
-            if request.decision.upper() == "APPROVE"
-            else RFQStatus.REJECTED
-        )
+        if request.decision == "APPROVE":
+            status = RFQStatus.APPROVED
+
+        elif request.decision == "REJECT":
+            status = RFQStatus.REJECTED
 
         self.rfq_repository.update_status(
             rfq=rfq,

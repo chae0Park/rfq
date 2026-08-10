@@ -2,8 +2,7 @@ from pydantic import BaseModel
 
 
 class ApprovalRequest(BaseModel):
-    # quotation_id: int
-    decision: str
+    decision: Literal["APPROVE", "REJECT"]
     reviewer: str
     comment: str | None = None
 
