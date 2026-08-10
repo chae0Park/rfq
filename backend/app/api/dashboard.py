@@ -124,8 +124,13 @@ def resume_n8n_workflow(
     if not rfq.n8n_resume_url:
         return
 
+    resume_url = rfq.n8n_resume_url.replace(
+        "http://localhost:5678",
+        "http://n8n:5678",
+    )
+
     response = httpx.post(
-        rfq.n8n_resume_url,
+        resume_url,
         json={
             "rfq_id": rfq.id,
             "quotation_id": quotation_id,
