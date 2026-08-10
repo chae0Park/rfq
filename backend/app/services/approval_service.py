@@ -27,7 +27,7 @@ class ApprovalService:
 
         status = (
             RFQStatus.APPROVED
-            if request.decision.upper() == "APPROVED"
+            if request.decision.upper() == "APPROVE"
             else RFQStatus.REJECTED
         )
 
