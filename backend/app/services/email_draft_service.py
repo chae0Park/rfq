@@ -38,7 +38,7 @@ class EmailDraftService:
         if not approval:
             raise ValueError("This RFQ has not been reviewed yet.")
 
-        if approval.decision.upper() != "APPROVED":
+        if approval.decision.upper() != "APPROVE":
             raise ValueError(
                 "An email draft can only be generated for an approved RFQ."
             )
