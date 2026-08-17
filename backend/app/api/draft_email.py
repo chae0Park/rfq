@@ -4,7 +4,8 @@ from fastapi import HTTPException
 
 from app.config.database import get_db
 from app.models.email_draft import DraftEmailResponse
-from app.services.draft_email_service import DraftEmailService
+# from app.services.draft_email_service import DraftEmailService
+from app.services.email_draft_service import EmailDraftService
 
 router = APIRouter(
     prefix="/draft-email",
@@ -23,7 +24,7 @@ def generate_draft_email(
     db: Session = Depends(get_db),
 ):
 
-    service = DraftEmailService(db)
+    service = EmailDraftService(db)
 
     try:
         return service.generate(rfq_id=rfq_id)

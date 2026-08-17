@@ -2,7 +2,7 @@ from app.models.request import RFQRequest
 from app.models.result import RFQExtractionResult
 from app.services.extractor import RFQExtractor
 from app.services.validator import RFQValidator
-
+from app.db.repositories.llm_call_log_repository import LLMCallLogRepository
 from sqlalchemy.orm import Session
 
 from app.db.repositories.rfq_repository import RFQRepository
@@ -14,6 +14,7 @@ class RFQService:
         self.extractor = RFQExtractor()
         self.validator = RFQValidator()
         self.repository = RFQRepository(db)
+        self.llm_log_repository = LLMCallLogRepository(db)
 
     def process_email(
         self,
