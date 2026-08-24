@@ -39,3 +39,26 @@ class LLMCallLogRepository:
         self.db.refresh(log)
 
         return log
+    
+    def get_by_rfq_id(
+        self,
+        rfq_id: int,
+    ) -> list[LLMCallLogDB]:
+
+        return (
+            self.db.query(LLMCallLogDB)
+            .filter(LLMCallLogDB.rfq_id == rfq_id)
+            .order_by(LLMCallLogDB.created_at.asc())
+            .all()
+        )
+
+    def get_all(
+        self,
+    ) -> list[LLMCallLogDB]:
+
+        return (
+            self.db.query(LLMCallLogDB)
+            .order_by(LLMCallLogDB.created_at.desc())
+            .all()
+        )
+    

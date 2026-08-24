@@ -71,5 +71,18 @@ class RFQRepository:
             .first()
         )
 
+    def update(
+        self,
+        rfq,
+        update_data: dict,
+    ):
+        for field, value in update_data.items():
+            setattr(rfq, field, value)
+
+        self.db.commit()
+        self.db.refresh(rfq)
+
+        return rfq
+
 
 

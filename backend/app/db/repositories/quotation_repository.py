@@ -50,3 +50,30 @@ class QuotationRepository:
             .filter(QuotationDB.rfq_id == rfq_id)
             .first()
         )
+
+    def update(
+        self,
+        quotation_db: QuotationDB,
+        quotation: QuotationResult,
+    ) -> QuotationDB:
+
+        updated_data = QuotationMapper.to_db(
+            rfq_id=quotation_db.rfq_id,
+            quotation=quotation,
+        )
+
+        quotation_db.base_cost = updated_data.base_cost
+        quotation_db.sample_cost = updated_data.sample_cost
+        quotation_db.programming_fee = updated_data.programming_fee
+        quotation_db.translation_fee = updated_data.translation_fee
+        quotation_db.pm_fee = updated_data.pm_fee
+        quotation_db.margin = updated_data.margin
+        quotation_db.rush_fee = updated_data.rush_fee
+        quotation_db.client_discount = updated_data.client_discount
+        quotation_db.total_cost = updated_data.total_cost
+        quotation_db.currency = updated_data.currency
+
+        self.db.commit()
+        self.db.refresh(quotation_db)
+
+        return quotation_db

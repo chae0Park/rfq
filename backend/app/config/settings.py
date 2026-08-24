@@ -20,5 +20,3 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-print(settings.model_dump())
-print(repr(settings.DATABASE_URL))

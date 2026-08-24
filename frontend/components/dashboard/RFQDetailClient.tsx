@@ -7,6 +7,8 @@ import DraftEmailViewer from "@/components/dashboard/DraftEmailViewer";
 import QuotationSummary from "@/components/dashboard/QuotationSummary";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 
+import { updateRFQ } from "@/services/dashboard";
+
 import type { DraftEmail } from "@/types/emailDraft";
 import type { RFQ } from "@/types/rfq";
 
@@ -17,8 +19,94 @@ interface RFQDetailClientProps {
 export default function RFQDetailClient({
   rfq,
 }: RFQDetailClientProps) {
+  // 현재 화면에 표시되는 RFQ
+  const [currentRFQ, setCurrentRFQ] =
+    useState<RFQ>(rfq);
+
   const [draft, setDraft] =
     useState<DraftEmail | null>(null);
+
+  // Edit mode
+  const [isEditing, setIsEditing] =
+    useState(false);
+
+  const [isSaving, setIsSaving] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  // Edit form
+  const [country, setCountry] =
+    useState(currentRFQ.country ?? "");
+
+  const [sampleSize, setSampleSize] =
+    useState(
+      currentRFQ.sample_size?.toString() ?? ""
+    );
+
+  const [loi, setLoi] =
+    useState(
+      currentRFQ.loi?.toString() ?? ""
+    );
+
+  const [ir, setIr] =
+    useState(
+      currentRFQ.ir?.toString() ?? ""
+    );
+
+  const handleEdit = () => {
+    // 항상 현재 RFQ 값을 기준으로 form 초기화
+    setCountry(currentRFQ.country ?? "");
+
+    setSampleSize(
+      currentRFQ.sample_size?.toString() ?? ""
+    );
+
+    setLoi(
+      currentRFQ.loi?.toString() ?? ""
+    );
+
+    setIr(
+      currentRFQ.ir?.toString() ?? ""
+    );
+
+    setError(null);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setError(null);
+    setIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const updatedRFQ = await updateRFQ(
+        currentRFQ.id,
+        {
+          country: country.trim(),
+          sample_size: Number(sampleSize),
+          loi: Number(loi),
+          ir: Number(ir),
+        }
+      );
+
+      setCurrentRFQ(updatedRFQ);
+      setIsEditing(false);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update RFQ."
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <>
@@ -29,14 +117,16 @@ export default function RFQDetailClient({
           </p>
 
           <h1>
-            {rfq.project_name ??
+            {currentRFQ.project_name ??
               "Untitled Project"}
           </h1>
 
-          <p>RFQ #{rfq.id}</p>
+          <p>RFQ #{currentRFQ.id}</p>
         </div>
 
-        <StatusBadge status={rfq.status} />
+        <StatusBadge
+          status={currentRFQ.status}
+        />
       </div>
 
       <div className="detail-grid">
@@ -47,7 +137,7 @@ export default function RFQDetailClient({
             <span>Name</span>
 
             <strong>
-              {rfq.client_name ?? "-"}
+              {currentRFQ.client_name ?? "-"}
             </strong>
           </div>
 
@@ -55,7 +145,7 @@ export default function RFQDetailClient({
             <span>Email</span>
 
             <strong>
-              {rfq.client_email ?? "-"}
+              {currentRFQ.client_email ?? "-"}
             </strong>
           </div>
 
@@ -63,58 +153,188 @@ export default function RFQDetailClient({
             <span>Company</span>
 
             <strong>
-              {rfq.client ?? "-"}
+              {currentRFQ.client ?? "-"}
             </strong>
           </div>
         </section>
 
         <section className="detail-card">
-          <h2>Project</h2>
+          <div className="detail-card-header">
+            <h2>Project</h2>
 
-          <div className="info-row">
-            <span>Country</span>
-
-            <strong>
-              {rfq.country ?? "-"}
-            </strong>
+            {!isEditing && (
+              <button
+                type="button"
+                onClick={handleEdit}
+              >
+                Edit
+              </button>
+            )}
           </div>
 
-          <div className="info-row">
-            <span>Methodology</span>
+          {isEditing ? (
+            <>
+              <div className="info-row">
+                <label htmlFor="country">
+                  Country
+                </label>
 
-            <strong>
-              {rfq.methodology ?? "-"}
-            </strong>
-          </div>
+                <input
+                  id="country"
+                  type="text"
+                  value={country}
+                  onChange={(event) =>
+                    setCountry(event.target.value)
+                  }
+                />
+              </div>
 
-          <div className="info-row">
-            <span>Sample Size</span>
+              <div className="info-row">
+                <label htmlFor="sample-size">
+                  Sample Size
+                </label>
 
-            <strong>
-              {rfq.sample_size
-                ? rfq.sample_size.toLocaleString()
-                : "-"}
-            </strong>
-          </div>
+                <input
+                  id="sample-size"
+                  type="number"
+                  min="1"
+                  value={sampleSize}
+                  onChange={(event) =>
+                    setSampleSize(
+                      event.target.value
+                    )
+                  }
+                />
+              </div>
 
-          <div className="info-row">
-            <span>Timeline</span>
+              <div className="info-row">
+                <label htmlFor="loi">
+                  LOI (minutes)
+                </label>
 
-            <strong>
-              {rfq.timeline ?? "-"}
-            </strong>
-          </div>
+                <input
+                  id="loi"
+                  type="number"
+                  min="1"
+                  value={loi}
+                  onChange={(event) =>
+                    setLoi(event.target.value)
+                  }
+                />
+              </div>
+
+              <div className="info-row">
+                <label htmlFor="ir">
+                  IR (%)
+                </label>
+
+                <input
+                  id="ir"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={ir}
+                  onChange={(event) =>
+                    setIr(event.target.value)
+                  }
+                />
+              </div>
+
+              {error && (
+                <p className="edit-error">
+                  {error}
+                </p>
+              )}
+
+              <div className="edit-actions">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
+                  {isSaving
+                    ? "Saving..."
+                    : "Save Changes"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="info-row">
+                <span>Country</span>
+
+                <strong>
+                  {currentRFQ.country ?? "-"}
+                </strong>
+              </div>
+
+              <div className="info-row">
+                <span>Methodology</span>
+
+                <strong>
+                  {currentRFQ.methodology ??
+                    "-"}
+                </strong>
+              </div>
+
+              <div className="info-row">
+                <span>Sample Size</span>
+
+                <strong>
+                  {currentRFQ.sample_size
+                    ? currentRFQ.sample_size.toLocaleString()
+                    : "-"}
+                </strong>
+              </div>
+
+              <div className="info-row">
+                <span>LOI</span>
+
+                <strong>
+                  {currentRFQ.loi != null
+                    ? `${currentRFQ.loi} min`
+                    : "-"}
+                </strong>
+              </div>
+
+              <div className="info-row">
+                <span>IR</span>
+
+                <strong>
+                  {currentRFQ.ir != null
+                    ? `${currentRFQ.ir}%`
+                    : "-"}
+                </strong>
+              </div>
+
+              <div className="info-row">
+                <span>Timeline</span>
+
+                <strong>
+                  {currentRFQ.timeline ?? "-"}
+                </strong>
+              </div>
+            </>
+          )}
         </section>
       </div>
 
-      {rfq.quotation && (
+      {currentRFQ.quotation && (
         <QuotationSummary
-          quotation={rfq.quotation}
+          quotation={currentRFQ.quotation}
         />
       )}
 
       <ActionButtons
-        rfqId={rfq.id}
+        rfqId={currentRFQ.id}
         // onDraftGenerated={setDraft}
       />
 

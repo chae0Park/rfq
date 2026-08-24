@@ -1,5 +1,6 @@
 from openai import OpenAI
 import csv
+import time
 from pathlib import Path
 
 from app.config.settings import settings
@@ -53,6 +54,7 @@ when the intended country is unambiguous.
 If the country does not correspond to any supported country,
 preserve the country stated by the client.
 """
+        start_time = time.perf_counter()
 
         response = self.client.responses.parse(
             model=settings.OPENAI_MODEL,
@@ -68,5 +70,19 @@ preserve the country stated by the client.
             ],
             text_format=RFQExtraction,
         )
+        latency_ms = (time.perf_counter() - start_time) * 1000
 
-        return response.output_parsed
+        input_tokens = None
+        output_tokens = None
+
+        if response.usage:
+            input_tokens = response.usage.input_tokens
+            output_tokens = response.usage.output_tokens
+
+
+        return {
+            "extraction": response.output_parsed,
+            "latency_ms": latency_ms,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+        }

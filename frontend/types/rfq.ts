@@ -13,17 +13,32 @@ export interface QuotationSummary {
 
 export interface RFQ {
   id: number;
+
   client_name: string | null;
   client_email: string | null;
   client: string | null;
+
   project_name: string | null;
+
   country: string | null;
   sample_size: number | null;
+
+  // Pricing inputs
+  loi: number | null;
+  ir: number | null;
+  programming_required: boolean | null;
+  translation_required: boolean | null;
+  rush: boolean | null;
+
   timeline: string | null;
   methodology: string | null;
+
   status: string;
+
   created_at?: string;
+
   total_cost: number | null;
   currency: string | null;
+
   quotation: QuotationSummary | null;
 }

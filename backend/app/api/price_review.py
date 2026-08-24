@@ -2,14 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
+from app.config.settings import settings
+
 from app.db.repositories.rfq_repository import RFQRepository
 from app.db.repositories.quotation_repository import QuotationRepository
 from app.db.repositories.price_review_repository import PriceReviewRepository
+from app.db.repositories.llm_call_log_repository import LLMCallLogRepository
+
 from app.services.price_review_service import PriceReviewService
 
 from app.models.rfq import RFQExtraction
 from app.models.quotation import QuotationResult
 from app.models.price_review import PriceReviewResult
+
+from app.utils.llm_cost import calculate_llm_cost
 
 
 router = APIRouter(
@@ -86,21 +92,59 @@ def review_price(
         },
     )
 
-    # 5. GPT Price Review
+    # 5. LLM Log Repository
+    llm_log_repository = LLMCallLogRepository(db)
+
+    # 6. GPT Price Review
     service = PriceReviewService()
 
-    result = service.review(
-        rfq=rfq,
-        quotation=quotation,
-    )
+    try:
+        review_result = service.review(
+            rfq=rfq,
+            quotation=quotation,
+        )
 
-    # 6. 결과 DB 저장
+    except Exception as error:
+        # GPT 호출 실패 로그
+        llm_log_repository.create(
+            rfq_id=rfq_id,
+            task_type="PRICE_REVIEW",
+            model=settings.OPENAI_MODEL,
+            status="FAILED",
+            latency_ms=None,
+            input_tokens=None,
+            output_tokens=None,
+            estimated_cost=None,
+            error_message=str(error),
+        )
+
+        raise
+
+    result = review_result["result"]
+
+    # 7. Price Review 결과 DB 저장
     review_repository = PriceReviewRepository(db)
 
     review_repository.create(
         rfq_id=rfq_id,
         quotation_id=quotation_db.id,
         result=result,
+    )
+
+    # 8. GPT 호출 성공 로그
+    llm_log_repository.create(
+        rfq_id=rfq_id,
+        task_type="PRICE_REVIEW",
+        model=settings.OPENAI_MODEL,
+        status="SUCCESS",
+        latency_ms=review_result["latency_ms"],
+        input_tokens=review_result["input_tokens"],
+        output_tokens=review_result["output_tokens"],
+        estimated_cost=calculate_llm_cost(
+            review_result["input_tokens"],
+            review_result["output_tokens"],
+        ),
+        error_message=None,
     )
 
     return result

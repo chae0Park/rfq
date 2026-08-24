@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 
 import type { RFQ } from "@/types/rfq";
 import StatusBadge from "@/components/dashboard/StatusBadge";
@@ -7,9 +9,17 @@ interface RFQTableProps {
   rfqs: RFQ[];
 }
 
-export default function RFQTable({ rfqs }: RFQTableProps) {
+export default function RFQTable({
+  rfqs,
+}: RFQTableProps) {
+  const router = useRouter();
+
   if (rfqs.length === 0) {
-    return <div className="empty-state">No RFQs found.</div>;
+    return (
+      <div className="empty-state">
+        No RFQs found.
+      </div>
+    );
   }
 
   return (
@@ -24,45 +34,60 @@ export default function RFQTable({ rfqs }: RFQTableProps) {
             <th>Sample Size</th>
             <th>Total</th>
             <th>Status</th>
-            <th />
           </tr>
         </thead>
 
         <tbody>
           {rfqs.map((rfq) => (
-            <tr key={rfq.id}>
+            <tr
+              key={rfq.id}
+              className="rfq-row"
+              onClick={() =>
+                router.push(`/rfqs/${rfq.id}`)
+              }
+            >
               <td>#{rfq.id}</td>
 
               <td>
                 <div className="client-cell">
-                  <strong>{rfq.client_name || "Unknown client"}</strong>
-                  <span>{rfq.client_email || "-"}</span>
+                  <strong>
+                    {rfq.client_name ||
+                      "Unknown client"}
+                  </strong>
+
+                  <span>
+                    {rfq.client_email || "-"}
+                  </span>
                 </div>
               </td>
 
-              <td>{rfq.project_name || "Untitled project"}</td>
+              <td>
+                {rfq.project_name ||
+                  "Untitled project"}
+              </td>
+
               <td>{rfq.country || "-"}</td>
 
               <td>
                 {rfq.sample_size
-                  ? rfq.sample_size.toLocaleString("en-US")
+                  ? rfq.sample_size.toLocaleString(
+                      "en-US"
+                    )
                   : "-"}
               </td>
+
               <td>
                 {rfq.total_cost !== null
-                  ? `${rfq.currency} ${rfq.total_cost.toLocaleString("en-US")}`
+                  ? `${rfq.currency} ${rfq.total_cost.toLocaleString(
+                      "en-US"
+                    )}`
                   : "-"}
               </td>
 
               <td>
-                <StatusBadge status={rfq.status} />
-              </td>
-
-              <td>
-                <Link href={`/rfqs/${rfq.id}`} className="view-link">
-                  View
-                </Link>
-               
+                <StatusBadge
+                  status={rfq.status}
+                />
               </td>
             </tr>
           ))}

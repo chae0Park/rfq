@@ -1,7 +1,7 @@
 import type { RFQ } from "@/types/rfq";
 import type { DraftEmail } from "@/types/emailDraft";
 import type { Activity } from "@/types/activity";
-
+import type { LLMCallLog, LLMMonitoringSummary } from "@/types/llmLog";
 
 // ============================================================
 // API URLs
@@ -41,6 +41,55 @@ export async function getRFQs(): Promise<RFQ[]> {
   if (!response.ok) {
     throw new Error(
       `Failed to fetch RFQs: ${response.status}`
+    );
+  }
+
+  return response.json();
+}
+
+// ============================================================
+// Update RFQ
+// Client Component
+// ============================================================
+
+export interface RFQUpdateRequest {
+  country?: string;
+  sample_size?: number;
+  loi?: number;
+  ir?: number;
+  methodology?: string;
+  timeline?: string;
+  programming_required?: boolean;
+  translation_required?: boolean;
+  rush?: boolean;
+  currency?: string;
+}
+
+
+export async function updateRFQ(
+  rfqId: number,
+  request: RFQUpdateRequest
+): Promise<RFQ> {
+  const response = await fetch(
+    `${PUBLIC_API_BASE_URL}/dashboard/rfqs/${rfqId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(request),
+    }
+  );
+
+  if (!response.ok) {
+    const errorBody = await response
+      .json()
+      .catch(() => null);
+
+    throw new Error(
+      errorBody?.detail ??
+        `Failed to update RFQ: ${response.status}`
     );
   }
 
@@ -211,6 +260,41 @@ export async function getActivities(
   if (!response.ok) {
     throw new Error(
       `Failed to fetch activities: ${response.status}`
+    );
+  }
+
+  return response.json();
+}
+
+export async function getAllLLMLogs(): Promise<LLMCallLog[]> {
+  const response = await fetch(
+    `${INTERNAL_API_BASE_URL}/dashboard/llm-logs`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch LLM logs");
+  }
+
+  return response.json();
+}
+
+
+export async function getLLMMonitoringSummary():
+  Promise<LLMMonitoringSummary> {
+
+  const response = await fetch(
+    `${INTERNAL_API_BASE_URL}/dashboard/llm-logs/summary`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Failed to fetch LLM monitoring summary"
     );
   }
 

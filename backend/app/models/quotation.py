@@ -53,7 +53,6 @@ class CostBreakdown(BaseModel):
 
 
 class QuotationResult(BaseModel):
-    # country: str
     countries: list[str]
 
     currency: str

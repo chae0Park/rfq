@@ -1,4 +1,5 @@
 from openai import OpenAI
+import time
 
 from app.config.settings import settings
 from app.models.price_review import PriceReviewResult
@@ -44,6 +45,7 @@ class PriceReviewService:
     - confidence: number between 0 and 1
     - summary: concise explanation
     """
+        start_time = time.perf_counter()
 
         response = self.client.responses.parse(
             model=settings.OPENAI_MODEL,
@@ -51,4 +53,18 @@ class PriceReviewService:
             text_format=PriceReviewResult,
         )
 
-        return response.output_parsed
+        latency_ms = (time.perf_counter() - start_time) * 1000
+
+        input_tokens = None
+        output_tokens = None
+
+        if response.usage:
+            input_tokens = response.usage.input_tokens
+            output_tokens = response.usage.output_tokens
+
+        return {
+            "result": response.output_parsed,
+            "latency_ms": latency_ms,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+        }

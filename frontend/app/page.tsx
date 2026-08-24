@@ -1,11 +1,14 @@
 import DashboardClient from "@/components/dashboard/DashboardClient";
 import { getRFQs } from "@/services/dashboard";
+import DashboardNav from "@/components/dashboard/DashboardNav";
+
 
 export default async function DashboardPage() {
   const rfqs = await getRFQs();
 
   return (
     <main className="dashboard-page">
+      <DashboardNav />
       <div className="dashboard-header">
         <div>
           <span className="dashboard-tag">

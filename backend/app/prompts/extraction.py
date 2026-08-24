@@ -36,6 +36,7 @@ Do not guess when the intended country is genuinely ambiguous.
 
 Always return the canonical country name used by the pricing system.
 
+
 ## Fields to Extract
 
 - project_name
@@ -70,6 +71,39 @@ Always return the canonical country name used by the pricing system.
   - "Full Service"
   - "Fieldwork Only"
 
+  ## Field Guidelines 
+ 
+- project_scope must be either: 
+  - "Full Service" 
+  - "Fieldwork Only" 
+
+- gender must be normalized to:
+  - "Male"
+  - "Female"
+  - null
+
+- Use gender only when the target audience itself is explicitly
+  restricted to a specific gender.
+
+- Gender distributions or quotas such as "50/50 male/female"
+  must be stored in quota, not gender.
+ 
+- translation_required, programming_required, overlay_required, 
+  and rush must be boolean values whenever explicitly stated. 
+ 
+- sample_size must be an integer. 
+ 
+- loi must be an integer representing minutes when explicitly stated. 
+ 
+- ir must be an integer representing a percentage when explicitly stated. 
+ 
+- languages must contain the explicitly requested survey languages. 
+ 
+- currency should use standard currency codes when explicitly stated, 
+  such as USD, EUR, GBP, KRW, or JPY. 
+ 
+Return only the extracted structured result.
+
 - translation_required, programming_required, overlay_required,
   and rush must be boolean values whenever explicitly stated.
 
@@ -85,4 +119,6 @@ Always return the canonical country name used by the pricing system.
   such as USD, EUR, GBP, KRW, or JPY.
 
 Return only the extracted structured result.
+
 """
+

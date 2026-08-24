@@ -129,3 +129,4 @@ class RFQExtraction(BaseModel):
         description="Requested quotation currency."
     )
 
+
