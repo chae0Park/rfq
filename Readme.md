@@ -361,27 +361,27 @@ Business logic such as quotation calculation remains in the service layer, while
 
 ### RFQ Dashboard
 
-![RFQ Dashboard](docs/images/dashboard.png)
+![RFQ Dashboard](backend/docs/images/dashboard.png)
 
 ### RFQ Detail & Quotation
 
-![RFQ Detail](docs/images/rfq-detail.png)
+![RFQ Detail](backend/docs/images/rfq-detail.png)
 
 ### RFQ Editing & Recalculation
 
-![RFQ Editing](docs/images/rfq-edit.png)
+![RFQ Editing](backend/docs/images/rfq-edit.png)
 
 ### Draft Email Generation
 
-![Draft Email](docs/images/draft-email.png)
+![Draft Email](backend/docs/images/draft-email.png)
 
 ### LLM Monitoring
 
-![LLM Monitoring](docs/images/llm-monitoring.png)
+![LLM Monitoring](backend/docs/images/llm-monitoring.png)
 
 ### Workflow Orchestration
 
-![n8n Workflow](docs/images/n8n-workflow.png)
+![n8n Workflow](backend/docs/images/n8n-workflow.png)
 
 ---
 
