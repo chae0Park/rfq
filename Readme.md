@@ -30,39 +30,8 @@ PromptOps automates this workflow while keeping pricing decisions and final appr
 
 ## Workflow
 
-```text
-Client Email
-     │
-     ▼
-Gmail / n8n
-     │
-     ▼
-RFQ Email Filtering
-     │
-     ▼
-LLM Structured Extraction
-     │
-     ▼
-Validation
-     │
-     ├── Missing Information
-     │       └── Clarification Required
-     │
-     ▼
-Deterministic Quotation Engine
-     │
-     ▼
-LLM Price Review
-     │
-     ▼
-Human Approval
-     │
-     ▼
-Client-ready Draft Email
-     │
-     ▼
-Dashboard / Database
-```
+![WORKFLOW](backend/docs/images/workflow.png)
+
 
 ---
 
