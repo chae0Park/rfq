@@ -38,30 +38,38 @@ PromptOps automates this workflow while keeping pricing decisions and final appr
 ## Architecture
 
 ```text
-                     Gmail
-                       │
-                       ▼
-                      n8n
-                 Workflow Layer
-                       │
-                       ▼
+                      Gmail
+                        │
+                        ▼
+                       n8n
+                  Workflow Layer
+                        │
+                        ▼
                  FastAPI Backend
-                       │
-        ┌──────────────┼──────────────┐
-        │              │              │
-        ▼              ▼              ▼
-   OpenAI API     Business Rules   PostgreSQL
-        │              │          / Supabase
-        │              ▼
-        │        Quotation Engine
-        │
-        ├── RFQ Extraction
-        ├── Price Review
-        └── Email Generation
-                       │
-                       ▼
-                Next.js Dashboard
+                        │
+  ┌─────────────────────┼─────────────────────┐
+  │                     │                     │
+  ▼                     ▼                     ▼
+  OpenAI API          Business Logic          PostgreSQL
+  │                     │                / Supabase
+  │              ┌──────┴──────┐
+  │              │             │
+  ▼              ▼             ▼
+  RFQ Extraction   Quotation      Market Price
+  │            Engine          Review
+  │              │             │
+  │              │       Market Benchmark
+  │              │             Data
+  │              │
+  └──────────────┼─────────────────────┐
+                 │                     │
+                 ▼                     ▼
+         Next.js Dashboard      Email Generation
+                 │
+                 ▼
+           Human Approval
 ```
+
 
 ### Design Principle
 
