@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect,useState } from "react";
 
 import ActionButtons from "@/components/dashboard/ActionButtons";
 import DraftEmailViewer from "@/components/dashboard/DraftEmailViewer";
@@ -22,6 +22,8 @@ export default function RFQDetailClient({
   // 현재 화면에 표시되는 RFQ
   const [currentRFQ, setCurrentRFQ] =
     useState<RFQ>(rfq);
+
+  useEffect(() => {setCurrentRFQ(rfq);}, [rfq]);
 
   const [draft, setDraft] =
     useState<DraftEmail | null>(null);
