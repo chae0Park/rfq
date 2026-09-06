@@ -28,6 +28,17 @@ class RFQDB(Base):
         nullable=False,
     )
 
+    gmail_thread_id: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        index=True,
+    )
+
+    gmail_message_id: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     project_name: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
@@ -58,6 +69,36 @@ class RFQDB(Base):
         nullable=True,
     )
 
+    region: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    city: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    target_audience: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    gender: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    age: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    quota: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
     sample_size: Mapped[int | None] = mapped_column(
         Integer,
         nullable=True,
@@ -85,6 +126,21 @@ class RFQDB(Base):
 
     languages: Mapped[list[str] | None] = mapped_column(
         JSON,
+        nullable=True,
+    )
+    
+    project_scope: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    end_client: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    additional_notes: Mapped[str | None] = mapped_column(
+        Text,
         nullable=True,
     )
 

@@ -3,7 +3,7 @@ from app.models.rfq import RFQExtraction
 from app.services.base_cost_loader import BaseCostLoader
 from app.services.panel_cpi_loader import PanelCPILoader
 from app.services.translation_fee_loader import TranslationFeeLoader
-from app.models.calculator import EXCHANGE_RATES
+from app.services.exchange_rate_loader import ExchangeRateLoader
 
 
 class RFQCalculator:
@@ -11,6 +11,7 @@ class RFQCalculator:
     def __init__(self):
         self.base_cost_loader = BaseCostLoader()
         self.panel_cpi_loader = PanelCPILoader()
+        self.exchange_rate_loader = ExchangeRateLoader()
         self.translation_fee_loader = TranslationFeeLoader()
 
     def calculate(self, rfq: RFQExtraction) -> QuotationResult:
@@ -161,6 +162,9 @@ class RFQCalculator:
         rfq: RFQExtraction,
     ) -> float:
 
+        if not rfq.programming_required:
+            return 0
+
         if rfq.loi is None:
             return 500
 
@@ -172,27 +176,16 @@ class RFQCalculator:
             return 900
         else:
             return 1200
+
         
-    # def _calculate_translation_fee(
-    #     self,
-    #     rfq: RFQExtraction,
-    # ) -> float:
-
-    #     if (
-    #         rfq.source_language is None
-    #         or rfq.target_language is None
-    #     ):
-    #         return 0
-
-    #     return self.translation_fee_loader.get_fee(
-    #         rfq.source_language,
-    #         rfq.target_language,
-    #     )
 
     def _calculate_translation_fee(
         self,
         rfq: RFQExtraction,
     ) -> float:
+        
+        if not rfq.translation_required:
+            return 0
 
         if not rfq.languages:
             return 0
@@ -200,6 +193,9 @@ class RFQCalculator:
         total_fee = 0
 
         for language in rfq.languages:
+            if language.lower() == "english":
+                continue
+            
             total_fee += self.translation_fee_loader.get_fee(
                 "English",
                 language,
@@ -236,10 +232,15 @@ class RFQCalculator:
         client_tier: str | None,
     ) -> float:
 
-        if client_tier == "Premium":
+        if not client_tier:
+            return 0
+
+        tier = client_tier.lower()
+
+        if tier == "premium":
             return round(total_cost * 0.05, 2)
 
-        if client_tier == "Enterprise":
+        if tier == "enterprise":
             return round(total_cost * 0.10, 2)
 
         return 0
@@ -250,9 +251,6 @@ class RFQCalculator:
         currency: str,
     ) -> float:
 
-        rate = EXCHANGE_RATES.get(currency.upper())
-
-        if rate is None:
-            raise ValueError(f"Unsupported currency: {currency}")
+        rate = self.exchange_rate_loader.get_rate(currency)
 
         return round(amount * rate, 2)

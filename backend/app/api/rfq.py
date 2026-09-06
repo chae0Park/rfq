@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.models.request import RFQRequest
 from app.models.result import RFQExtractionResult
@@ -32,3 +32,36 @@ def extract_rfq(
     service = RFQService(db)
 
     return service.process_email(request)
+
+@router.post(
+    "/{rfq_id}/waiting-for-client",
+    summary="Mark RFQ as waiting for client clarification",
+)
+def mark_waiting_for_client(
+    rfq_id: int,
+    db: Session = Depends(get_db),
+):
+    service = RFQService(db)
+
+    return service.mark_waiting_for_client(rfq_id)
+
+
+@router.get(
+    "/thread/{thread_id}",
+    summary="Get RFQ by Gmail thread ID",
+)
+def get_rfq_by_thread(
+    thread_id: str,
+    db: Session = Depends(get_db),
+):
+    service = RFQService(db)
+
+    rfq = service.get_by_thread_id(thread_id)
+
+    if rfq is None:
+        raise HTTPException(
+            status_code=404,
+            detail="RFQ not found for this Gmail thread",
+        )
+
+    return rfq

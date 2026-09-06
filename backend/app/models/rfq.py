@@ -115,17 +115,17 @@ class RFQExtraction(BaseModel):
     )
 
     rush: bool | None = Field(
-        default=False,
+        default=None,
         description="Whether the project requires expedited delivery."
     )
 
     client_tier: str | None = Field(
-        default="Standard",
+        default=None,
         description="Client pricing tier."
     )
 
     currency: str | None = Field(
-        default="USD",
+        default=None,
         description="Requested quotation currency."
     )
 

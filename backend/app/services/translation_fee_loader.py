@@ -28,4 +28,12 @@ class TranslationFeeLoader:
             target_language.lower(),
         )
 
-        return self.fees.get(key, 0.0)
+        fee = self.fees.get(key)
+
+        if fee is None:
+            raise ValueError(
+                f"Translation fee not found for "
+                f"'{source_language}' -> '{target_language}'."
+            )
+
+        return fee

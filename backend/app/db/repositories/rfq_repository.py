@@ -71,6 +71,17 @@ class RFQRepository:
             .first()
         )
 
+    def get_by_thread_id(
+        self,
+        thread_id: str,
+    ):
+        return (
+            self.db.query(RFQDB)
+            .filter(RFQDB.gmail_thread_id == thread_id)
+            .order_by(RFQDB.created_at.desc())
+            .first()
+        )
+
     def update(
         self,
         rfq,

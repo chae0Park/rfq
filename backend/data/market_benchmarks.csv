@@ -1,0 +1,11 @@
+country,sample_size_min,sample_size_max,loi_min,loi_max,ir_min,ir_max,programming_required,translation_required,rush,benchmark_low_usd,benchmark_high_usd,source_type
+South Korea,100,499,1,10,40,100,false,false,false,500,1800,mock_market
+South Korea,500,999,1,10,40,100,false,false,false,1500,3500,mock_market
+South Korea,1000,1499,1,10,40,100,false,false,false,2800,5000,mock_market
+South Korea,1000,1499,11,20,20,39,true,false,false,4500,7000,mock_market
+South Korea,1000,1499,11,20,20,39,true,true,false,4800,7500,mock_market
+South Korea,1000,1499,11,20,20,39,true,true,true,5500,8500,mock_market
+United States,500,999,1,10,40,100,false,false,false,3500,6500,mock_market
+United States,1000,1499,11,20,20,39,true,true,false,9000,14000,mock_market
+United Kingdom,500,999,1,10,40,100,false,false,false,3000,5500,mock_market
+United Kingdom,1000,1499,11,20,20,39,true,true,false,7500,12000,mock_market

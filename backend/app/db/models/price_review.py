@@ -26,21 +26,6 @@ class PriceReviewDB(Base):
         index=True,
     )
 
-    recommendation: Mapped[str] = mapped_column(
-        String(20),
-        nullable=False,
-    )
-
-    confidence: Mapped[float] = mapped_column(
-        Float,
-        nullable=False,
-    )
-
-    summary: Mapped[str] = mapped_column(
-        Text,
-        nullable=False,
-    )
-
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -52,4 +37,29 @@ class PriceReviewDB(Base):
         nullable=False,
         server_default=func.now(),
         onupdate=func.now(),
+    )
+
+    status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+    )
+
+    price: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+    )
+
+    benchmark_low: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+
+    benchmark_high: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+
+    source_type: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
     )

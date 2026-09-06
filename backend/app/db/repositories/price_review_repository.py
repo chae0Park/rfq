@@ -18,9 +18,11 @@ class PriceReviewRepository:
         review = PriceReviewDB(
             rfq_id=rfq_id,
             quotation_id=quotation_id,
-            recommendation=result.recommendation,
-            confidence=result.confidence,
-            summary=result.summary,
+            status=result.status,
+            price=result.price,
+            benchmark_low=result.benchmark_low,
+            benchmark_high=result.benchmark_high,
+            source_type=result.source_type,
         )
 
         self.db.add(review)
