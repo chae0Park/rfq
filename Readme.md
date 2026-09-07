@@ -1,10 +1,12 @@
 # RFQ Automation
 
-> **An AI-powered RFQ Automation Platform for Market Research Operations**
+> **An AI-assisted RFQ Automation Platform for Market Research Operations**
 
 RFQ Automation is an end-to-end RFQ (Request for Quotation) automation system designed to reduce repetitive manual work in market research operations.
 
-It processes incoming client RFQ emails, extracts structured project requirements using an LLM, validates required information, calculates quotations using deterministic pricing rules, compares generated prices against market benchmark data, routes quotations through human approval, and generates client-ready email drafts.
+The system processes incoming client RFQ emails, extracts structured project requirements using an LLM, validates required information, calculates quotations using deterministic pricing rules, compares generated prices against market benchmark data, routes quotations through human approval, and generates client-ready Gmail drafts.
+
+It also supports incomplete RFQs across multiple emails in the same Gmail thread, allowing missing information to be requested and later merged into the existing RFQ.
 
 The project focuses on combining **LLM-assisted automation with deterministic business logic, human-in-the-loop controls, evaluation, and operational monitoring**.
 
@@ -14,17 +16,21 @@ The project focuses on combining **LLM-assisted automation with deterministic bu
 
 RFQ processing in market research operations often requires manually:
 
-* Reading incoming client emails
-* Extracting project specifications
-* Checking whether required information is missing
-* Calculating project costs
-* Reviewing whether the quotation looks reasonable
-* Getting internal approval
-* Preparing a client response
+- Reading incoming client emails
+- Extracting project specifications
+- Checking whether required information is missing
+- Following up with clients for missing information
+- Calculating project costs
+- Reviewing whether the quotation looks reasonable
+- Getting internal approval
+- Preparing a client response
+- Tracking the RFQ throughout the process
+
+RFQ information also does not always arrive in a single complete email. Clients may provide missing project details through later replies, requiring operators to track and consolidate information across an email thread.
 
 These repetitive steps increase processing time and create opportunities for manual errors.
 
-RFQ Automation automates this workflow while keeping pricing calculations and final approval under explicit operational control.
+RFQ Automation automates this workflow while keeping pricing calculations, benchmark references, and final approval under explicit operational control.
 
 ---
 
@@ -32,9 +38,51 @@ RFQ Automation automates this workflow while keeping pricing calculations and fi
 
 ![WORKFLOW](backend/docs/images/workflow.png)
 
+The workflow follows the RFQ lifecycle from email intake to a human-reviewed client response:
+
+```text
+Client Email
+     ↓
+Gmail / n8n
+     ↓
+RFQ Detection & Thread Routing
+     ↓
+LLM Structured Extraction
+     ↓
+Validation
+     │
+     ├── Missing Required Information
+     │       ↓
+     │   Clarification
+     │       ↓
+     │   WAITING_FOR_CLIENT
+     │       ↓
+     │   Same-thread Client Reply
+     │       ↓
+     │   Existing RFQ Updated
+     │       └──────────────→ Validation
+     │
+     ▼
+Deterministic Quotation Engine
+     ↓
+Market Benchmark Price Review
+     ↓
+Human Approval
+     ↓
+Workflow Resume
+     ↓
+Client-ready Email Generation
+     ↓
+Gmail Draft
+     ↓
+Operator Notification
+```
+
 ---
 
 ## Architecture
+
+```text
                          Gmail
                            │
                            ▼
@@ -77,64 +125,84 @@ RFQ Automation automates this workflow while keeping pricing calculations and fi
                               Gmail Draft
 ```
 
-
 ### Design Principle
 
 RFQ Automation deliberately separates **probabilistic AI tasks** from **deterministic business logic**.
 
-LLMs are used for tasks such as:
+LLMs are used for:
 
-* Understanding unstructured RFQ emails
-* Converting email content into structured RFQ data
-* Drafting client communication
+- Understanding unstructured RFQ emails
+- Converting email content into structured RFQ data
+- Drafting client communication
 
-Deterministic Python logic is used for:
+Deterministic software is used for:
 
-* RFQ validation
-* Pricing calculations
-* Cost multipliers
-* Fees and margins
-* Currency conversion
-* Market benchmark comparison
-* Workflow state handling
+- RFQ validation
+- Pricing calculations
+- Cost multipliers
+- Fees and margins
+- Currency conversion
+- Market benchmark comparison
+- Workflow state handling
+- Gmail thread-based RFQ matching
 
-Final quotation decisions remain behind a **human approval step**.
+Humans retain control over:
+
+- Correcting extracted information
+- Reviewing quotation and benchmark results
+- Approving or rejecting quotations
+- Reviewing client-facing communication
+
+> **AI interprets. Software calculates. Humans decide.**
 
 ---
 
 ## Key Features
 
-### AI-powered RFQ Extraction
+### AI-assisted RFQ Extraction
 
 Incoming RFQ emails are converted into structured data using the OpenAI API with structured outputs.
 
 Extracted fields include:
 
-* Country / Countries
-* Sample Size
-* Target Audience
-* LOI
-* Incidence Rate
-* Methodology
-* Timeline
-* Programming Requirements
-* Translation Requirements
-* Languages
-* Rush Requirements
-* Client Information
-* Currency
+- Country / Countries
+- Sample Size
+- Target Audience
+- LOI
+- Incidence Rate
+- Methodology
+- Timeline
+- Programming Requirements
+- Translation Requirements
+- Languages
+- Rush Requirements
+- Client Information
+- Currency
 
-The system supports RFQ information arriving across multiple emails in the same Gmail thread. New information can be merged into the existing RFQ record using the Gmail thread identifier rather than creating a separate RFQ.
+The system supports RFQ information arriving across multiple emails in the same Gmail thread.
+
+The Gmail thread identifier is used to locate an existing RFQ so that newly provided information can be merged into the same record rather than creating duplicate RFQs.
 
 ---
 
-### RFQ Validation & Clarification
+### RFQ Detection, Validation & Clarification
 
-Required project information is validated before quotation generation.
+Incoming emails are first routed through the n8n workflow to determine whether they should enter RFQ processing and whether they belong to an existing RFQ thread.
 
-When required information is missing, the RFQ can be marked as waiting for client information and clarification questions can be generated before the workflow continues.
+Required project information is then validated before quotation generation.
 
-Client replies within the same Gmail thread can be processed and merged into the existing RFQ, allowing incomplete RFQs to be progressively completed.
+When required information is missing:
+
+1. The missing fields are identified.
+2. Clarification is requested from the client.
+3. The RFQ is marked as `WAITING_FOR_CLIENT`.
+4. Processing pauses while waiting for additional information.
+5. A reply in the same Gmail thread triggers a new workflow execution.
+6. The backend finds the existing RFQ using the Gmail thread identifier.
+7. Newly extracted information is merged into the existing RFQ.
+8. Once the required information is complete, the RFQ can continue through quotation processing.
+
+This allows incomplete RFQs to be progressively completed without restarting the workflow or creating duplicate requests.
 
 ---
 
@@ -144,23 +212,25 @@ Quotation calculation is handled through explicit Python business rules rather t
 
 Pricing components include:
 
-* Country base cost
-* Panel CPI
-* Sample size
-* LOI multiplier
-* IR multiplier
-* Programming fee
-* Translation fee
-* Project management fee
-* Rush fee
-* Margin
-* Client discount
-* Currency conversion
-* Multi-country pricing
+- Country base cost
+- Panel CPI
+- Sample size
+- LOI multiplier
+- IR multiplier
+- Programming fee
+- Translation fee
+- Project management fee
+- Rush fee
+- Margin
+- Client discount
+- Currency conversion
+- Multi-country pricing
 
 This keeps financial calculations predictable, reproducible, and auditable.
 
-When optional pricing inputs such as LOI or IR are unavailable, the quotation engine can apply defined fallback behavior rather than failing the workflow. These values can later be reviewed and corrected by an operator.
+When optional pricing inputs such as LOI or IR are unavailable, the quotation engine applies defined fallback behavior rather than failing the workflow.
+
+These values can later be reviewed or added by an operator through the dashboard, after which the quotation can be recalculated using the same deterministic pricing rules.
 
 ---
 
@@ -170,40 +240,83 @@ After the quotation engine generates a price, the calculated quotation is compar
 
 Benchmark matching considers project attributes such as:
 
-* Country
-* Sample size
-* LOI
-* Incidence rate
-* Programming requirements
-* Translation requirements
-* Rush requirements
+- Country
+- Sample size
+- LOI
+- Incidence rate
+- Programming requirements
+- Translation requirements
+- Rush requirements
 
-The review can classify a quotation as:
+The review classifies a quotation as:
 
-* `BELOW_BENCHMARK`
-* `WITHIN_BENCHMARK`
-* `ABOVE_BENCHMARK`
-* `NO_BENCHMARK`
+- `BELOW_BENCHMARK`
+- `WITHIN_BENCHMARK`
+- `ABOVE_BENCHMARK`
+- `NO_BENCHMARK`
 
-When sufficient information is not available to select an appropriate benchmark, the system returns `NO_BENCHMARK` instead of forcing an arbitrary comparison.
+When sufficient information is not available to select an appropriate benchmark, the system returns `NO_BENCHMARK` rather than forcing an arbitrary comparison.
 
-The benchmark review does **not** determine or modify the quotation itself. Final pricing decisions remain under human control.
+The benchmark review does **not** determine or modify the quotation itself. It provides an additional reference point for human review.
+
+#### Benchmark Governance
+
+Market benchmark data is treated as **controlled reference data**, rather than being automatically updated from every newly processed RFQ.
+
+New RFQ and quotation records do not automatically become future pricing benchmarks. This prevents individual or anomalous quotations from immediately influencing subsequent price reviews.
+
+For production use, new quotation records can instead provide evidence for periodic benchmark reviews. A team can evaluate historical quotations alongside market conditions and operational experience before agreeing on changes to the benchmark dataset.
+
+```text
+New RFQ & Quotation Records
+            ↓
+Historical Pricing Evidence
+            ↓
+Periodic Team Review
+            ↓
+Agreed Benchmark Update
+            ↓
+Market Benchmark Dataset
+            ↓
+Future RFQ Reviews
+```
+
+This keeps changes to pricing reference data under explicit human governance.
 
 ---
 
-### Human-in-the-loop Approval
+### Human-in-the-Loop Approval
 
 Quotation decisions require explicit human review.
 
 Users can:
 
-* Review RFQ information
-* Inspect the calculated quotation
-* Review market benchmark results
-* Approve or reject the quotation
-* Add reviewer comments
+- Review RFQ information
+- Inspect the calculated quotation
+- Review market benchmark results
+- Correct RFQ information
+- Approve or reject the quotation
+- Add reviewer comments
 
-The workflow can pause while waiting for human approval and resume after a decision is submitted.
+For the approval workflow, n8n stores a workflow resume URL and pauses execution while waiting for the operator's decision.
+
+```text
+Quotation + Benchmark Review
+            ↓
+Save Workflow Resume URL
+            ↓
+Slack Approval Notification
+            ↓
+Wait for Human Approval
+          ↙   ↘
+      Reject   Approve
+        ↓         ↓
+       End    Resume Workflow
+                  ↓
+           Generate Draft
+```
+
+Only an approved quotation proceeds to client email generation.
 
 This prevents fully autonomous client-facing pricing decisions.
 
@@ -215,7 +328,13 @@ Extracted RFQ values can be corrected from the dashboard.
 
 When pricing-related fields such as LOI or IR are modified, the updated RFQ is passed back through the deterministic quotation engine and the quotation is recalculated.
 
-This allows human operators to correct extraction results, add internally determined values, or reflect changes in client requirements without restarting the RFQ from the beginning.
+This allows human operators to:
+
+- Correct extraction results
+- Add internally determined values
+- Reflect changes in client requirements
+
+without restarting the RFQ from the beginning.
 
 ---
 
@@ -223,14 +342,18 @@ This allows human operators to correct extraction results, add internally determ
 
 Approved quotations can be converted into professional client-facing email drafts.
 
-The generated draft incorporates information such as:
+The generated draft can incorporate:
 
-* Client information
-* Project requirements
-* Final quotation
-* Sender information
+- Client information
+- Project requirements
+- Approved quotation
+- Sender information
 
-The workflow creates a Gmail draft rather than automatically sending the quotation, preserving human control over client-facing communication.
+The workflow creates a **Gmail draft rather than automatically sending the quotation**.
+
+This preserves a final human review point before any quotation becomes external client communication.
+
+After the draft is created, the workflow can notify the operator that the client response is ready for review.
 
 ---
 
@@ -254,9 +377,18 @@ Expected vs Actual Comparison
 Evaluation Metrics
 ```
 
+The Golden Set contains RFQ examples paired with expected structured outputs.
+
 The evaluation layer makes extraction quality measurable rather than relying only on manual prompt testing.
 
-This supports identifying extraction failure cases and detecting regressions when extraction prompts or models change.
+This supports identifying:
+
+- Incorrect extractions
+- Missing information
+- Prompt regressions
+- Model behavior changes
+
+and provides a repeatable way to evaluate extraction behavior as the AI component changes.
 
 ---
 
@@ -266,24 +398,24 @@ LLM calls are logged for operational monitoring.
 
 Tracked information includes:
 
-* Task type
-* Model
-* Success / failure
-* Input tokens
-* Output tokens
-* Latency
-* Estimated API cost
-* Error information
+- Task type
+- Model
+- Success / failure
+- Input tokens
+- Output tokens
+- Latency
+- Estimated API cost
+- Error information
 
 A monitoring dashboard provides aggregated metrics such as:
 
-* Total LLM calls
-* Success rate
-* Token usage
-* Average latency
-* Estimated cost
+- Total LLM calls
+- Success rate
+- Token usage
+- Average latency
+- Estimated cost
 
-This provides visibility into both **LLM behavior and operational cost**.
+This provides visibility into both **LLM behavior and operational cost**, rather than treating the LLM as a black box.
 
 ---
 
@@ -293,35 +425,38 @@ The Next.js dashboard provides an operational interface for managing RFQs.
 
 It supports:
 
-* RFQ overview
-* Search and status filtering
-* RFQ status visualization
-* RFQ detail inspection
-* Quotation breakdown
-* Market benchmark review results
-* RFQ editing
-* Quotation recalculation
-* Human approval / rejection
-* Draft email preview
-* LLM monitoring
+- RFQ overview
+- Search and status filtering
+- RFQ status visualization
+- RFQ detail inspection
+- Quotation breakdown
+- Market benchmark review results
+- RFQ editing
+- Quotation recalculation
+- Human approval / rejection
+- Draft email preview
+- LLM monitoring
+
+This turns the backend automation into a workflow that operators can inspect and control.
 
 ---
 
 ## Tech Stack
 
-| Category            | Technologies                           |
-| ------------------- | -------------------------------------- |
-| Frontend            | Next.js, TypeScript                    |
-| Backend             | FastAPI, Python                        |
-| AI                  | OpenAI API, Structured Outputs         |
-| Database            | PostgreSQL, Supabase                   |
-| ORM / Migration     | SQLAlchemy, Alembic                    |
-| Workflow Automation | n8n                                    |
-| Email Integration   | Gmail                                  |
-| Infrastructure      | Docker Compose                         |
-| Backend Deployment  | Railway                                |
-| Frontend Deployment | Vercel                                 |
-| Evaluation          | Golden Set-based extraction evaluation |
+| Category | Technologies |
+|---|---|
+| Frontend | Next.js, TypeScript |
+| Backend | FastAPI, Python |
+| AI | OpenAI API, Structured Outputs |
+| Database | PostgreSQL, Supabase |
+| ORM / Migration | SQLAlchemy, Alembic |
+| Workflow Automation | n8n |
+| Email Integration | Gmail |
+| Notifications | Slack |
+| Infrastructure | Docker Compose |
+| Backend Deployment | Railway |
+| Frontend Deployment | Vercel |
+| Evaluation | Golden Set-based extraction evaluation |
 
 ---
 
@@ -341,6 +476,7 @@ backend/
 │   ├── services/
 │   └── utils/
 │
+├── data/
 └── evaluation/
     ├── evaluate_extraction.py
     └── golden_set.json
@@ -396,9 +532,13 @@ Business logic such as quotation calculation and market benchmark comparison rem
 ### Workflow Orchestration
 
 ![n8n Workflow](backend/docs/images/n8n-workflow.png)
+
 ![n8n Workflow](backend/docs/images/n8n-workflow2.png)
+
 ![n8n Workflow](backend/docs/images/n8n-workflow3.png)
+
 ![n8n Workflow](backend/docs/images/n8n-workflow4.png)
+
 ![n8n Workflow](backend/docs/images/n8n-workflow5.png)
 
 ---
@@ -418,9 +558,10 @@ Create the required environment configuration for the backend.
 
 Required services include:
 
-* OpenAI API
-* PostgreSQL database
-* Gmail / n8n configuration where applicable
+- OpenAI API
+- PostgreSQL database
+- Gmail / n8n configuration where applicable
+- Slack configuration where applicable
 
 Do not commit secrets or local runtime data to the repository.
 
@@ -462,6 +603,8 @@ The LLM extracts unstructured information, while the actual quotation is calcula
 
 This separation prevents probabilistic model behavior from directly determining financial calculations.
 
+---
+
 ### Why use deterministic market benchmark comparison?
 
 A generated quotation should be reviewable against known pricing ranges without allowing an LLM to independently alter financial decisions.
@@ -470,17 +613,49 @@ RFQ Automation therefore compares calculated quotations against structured marke
 
 If the available RFQ information is insufficient for an appropriate benchmark comparison, the system returns `NO_BENCHMARK` rather than selecting an arbitrary benchmark.
 
+The comparison provides context for a human reviewer; it does not modify the quotation.
+
+---
+
+### Why not automatically learn benchmarks from new RFQs?
+
+A newly processed quotation is not necessarily a reliable market reference.
+
+Automatically feeding every new RFQ back into the benchmark dataset could allow unusual projects, temporary pricing decisions, or outliers to influence future reviews.
+
+RFQ Automation therefore separates **operational quotation records** from **controlled benchmark reference data**.
+
+For production use, historical quotation data can be reviewed periodically by the team alongside market conditions and operational experience. Only agreed changes would then be incorporated into the benchmark dataset.
+
+This keeps benchmark evolution auditable and under human governance.
+
+---
+
+### Why support multi-email RFQs?
+
+Real client requests are often incomplete.
+
+Instead of treating every client reply as a new RFQ, the system uses the Gmail thread identifier to associate follow-up information with the existing RFQ.
+
+This allows missing information to be progressively collected while preserving a single RFQ lifecycle.
+
+---
+
 ### Why Human Approval?
 
 Even when extraction and pricing are automated, sending a quotation directly to a client introduces operational and financial risk.
 
 RFQ Automation therefore keeps the final decision behind a human approval gate and generates a Gmail draft rather than automatically sending the client response.
 
+---
+
 ### Why add evaluation?
 
 A successful API response does not mean an extraction is correct.
 
 The Golden Set evaluation layer provides a repeatable way to measure extraction behavior and identify regressions when prompts or models change.
+
+---
 
 ### Why monitor tokens, latency, and cost?
 
@@ -494,6 +669,6 @@ Tracking these metrics makes model usage, performance, failures, and cost visibl
 
 **Core workflow complete.**
 
+The system currently supports the RFQ lifecycle from incoming email detection and structured extraction through validation, multi-email clarification handling, deterministic quotation generation, market benchmark review, human approval, workflow resume, client-ready Gmail draft generation, database persistence, extraction evaluation, and LLM monitoring.
 
-The system currently supports the RFQ lifecycle from incoming email processing and structured extraction through validation, deterministic quotation generation, market benchmark review, human approval, client-ready draft generation, database persistence, extraction evaluation, and LLM monitoring.
-
+The final portfolio validation includes end-to-end testing across both complete and incomplete RFQ scenarios before final screenshots and case-study documentation are updated.
