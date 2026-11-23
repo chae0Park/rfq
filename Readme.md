@@ -135,8 +135,6 @@ This is a portfolio project, not a claim of production readiness.
 
 External integrations require credentials and configuration. Quotation and benchmark results depend on the available reference datasets and human review.
 
----
 
-For design decisions, technical challenges, and evaluation details, see the **[Case Study](RFQ_Case_Study_Revised.md)**.
 
 
